@@ -1,4 +1,4 @@
-calc.py module 
+calc.py module
 
 
 # Python Programming Language Foundation Hometask
