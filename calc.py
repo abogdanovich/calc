@@ -33,7 +33,8 @@ def console_parser():
     parser = argparse.ArgumentParser('Calc string values script')
 
     # input string param
-    parser.add_argument('string', type=str, help="display a square of a given number")
+    parser.add_argument('string', type=str,
+                        help="display a square of a given number")
 
     # Arguments for calc operations
     parser.add_argument('-m', dest='module', action='store', type=str,
@@ -117,7 +118,7 @@ def clean_up_str(_string):
 
 
 def parse_string(input_string):
-    """Parse clean string and find all signs, funcs and numbers with operators"""
+    """Parse string to find signs, funcs and numbers"""
 
     for _str in input_string:
         clean_str = clean_up_str(_str)
@@ -152,10 +153,12 @@ def sort_values_stack(parsed_string):
     for element in parsed_string:
         # grab each element and compare priority with other stack elements
         if element in OPERATORS:
-            while stack and stack[-1] != "(" and OPERATORS[element][0] <= OPERATORS[stack[-1]][0]:
+            while stack and stack[-1] != "(" \
+                    and OPERATORS[element][0] <= OPERATORS[stack[-1]][0]:
                 yield stack.pop()
             stack.append(element)
-        # check case when we're in (..) and the next element is ) to get all bracket's elements
+        # check case when we're in (..)
+        # and the next element is ) to get all bracket's elements
         elif element == ')':
             while stack:
                 x = stack.pop()
@@ -202,17 +205,23 @@ def main():
         else:
             testing_strings = {console_args.string}
 
-        logger.info('Starting calc with string {parse_str}'.format(parse_str=console_args))
+        logger.info('Starting with {parse_str}'.format(parse_str=console_args))
 
         # check and dynamically import external module
         if console_args.module:
             try:
-                # imported_module = importlib.import_module(console_args.module)
-                # is_imported = True
-                logger.info('Module {module} is imported successfully'.format(module=console_args.module))
-                logger.info('Possible func list for {module} are: {module_funcs}'.format(module=console_args.module, module_funcs=dir(imported_module)))
+                imported_module = importlib.import_module(console_args.module)
+                is_imported = True
+                logger.info(
+                    'Module {module} is imported successfully'.format(
+                        module=console_args.module
+                    )
+                )
+                logger.info('Func dir {module} is: {module_funcs}'.format(
+                    module=console_args.module, module_funcs=dir(imported_module))
+                )
             except ImportError as err:
-                logger.error('I can not import your interesting "{module}" module. Error: {err}'.format(module=console_args.module, err=err))
+                logger.error('Import {module} module {err}'.format(module=console_args.module, err=err))
 
         # run parser
         list_values = parse_string(testing_strings)
