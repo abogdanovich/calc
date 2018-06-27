@@ -96,8 +96,8 @@ class Calc(object):
         parser = argparse.ArgumentParser('Calc string values script')
 
         # input string param as expression
-        # parser.add_argument('string', type=str,
-        #                     help="input expression to calculate")
+        parser.add_argument('string', type=str,
+                             help="input expression to calculate")
 
         # Arguments for calc operations
         parser.add_argument('-m', dest='module', action='store', type=str,
@@ -243,6 +243,7 @@ def main():
         # run parser
         list_values = pycalc.clean_up_str(testing_strings)
         calc_values = pycalc.sort_values_stack(list_values)
+        print(pycalc.calc(calc_values))
 
     finally:
         pycalc.log('info', 'close application')
