@@ -212,16 +212,15 @@ def main():
 
     try:
         pycalc = Calc("calc")
-        testing_strings = '2+2-4*log(10)'
+        testing_strings = ''
         console_args = pycalc.console_parser()
 
-        #if not console_args.string:
-        #   pycalc.log('error', 'No parsed input string')
+        if not console_args.string:
+           pycalc.log('error', 'No parsed input string')
 
-        #else:
-        #    testing_strings = console_args.string
-
-        #    pycalc.log('info', 'Starting with {parse_str}'.format(parse_str=console_args))
+        else:
+            testing_strings = console_args.string
+            pycalc.log('info', 'Starting with {parse_str}'.format(parse_str=console_args))
 
         # check and dynamically import external module
         if console_args.module:
@@ -243,11 +242,7 @@ def main():
 
         # run parser
         list_values = pycalc.clean_up_str(testing_strings)
-        print(list_values)
-        print(pycalc.parse_string(list_values))
         calc_values = pycalc.sort_values_stack(list_values)
-        print(calc_values)
-        print(pycalc.calc(calc_values))
 
     finally:
         pycalc.log('info', 'close application')
