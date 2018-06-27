@@ -33,8 +33,12 @@ OPERATORS = ({
 
 })
 FUNCTIONS = (
-    'abs', 'pow', 'round',
-    'sin', 'log', 'pi', 'cos',
+    'acos', 'acosh', 'asin', 'asinh', 'atan', 'atan2', 'atanh', 'ceil',
+    'copysign', 'cos', 'cosh', 'degrees', 'e', 'erf', 'erfc', 'exp',
+    'expm1', 'fabs', 'factorial', 'floor', 'fmod', 'frexp', 'fsum', 'gamma',
+    'gcd', 'hypot', 'inf', 'isclose', 'isfinite', 'isinf', 'isnan', 'ldexp',
+    'lgamma', 'log', 'log10', 'log1p', 'log2', 'modf', 'nan', 'pi', 'pow',
+    'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', 'tau', 'trunc'
 )
 BRACKETS = ('(', ')', )
 
@@ -92,8 +96,8 @@ class Calc(object):
         parser = argparse.ArgumentParser('Calc string values script')
 
         # input string param as expression
-        parser.add_argument('string', type=str,
-                            help="display a square of a given number")
+        # parser.add_argument('string', type=str,
+        #                     help="input expression to calculate")
 
         # Arguments for calc operations
         parser.add_argument('-m', dest='module', action='store', type=str,
@@ -112,6 +116,34 @@ class Calc(object):
 
         return _str.replace('**', '^')
 
+    def parse_string(self, input_string):
+        """Parse string to find signs, funcs and numbers"""
+
+        for _str in input_string:
+            clean_str = self.clean_up_str(_str)
+            parsed_list = ()
+            last_element = ''
+            for symbol in clean_str:
+                # check each symbol
+                if symbol in OPERATORS:
+                    if last_element != '':
+                        parsed_list += (last_element,)
+                        last_element = ''
+                    parsed_list += (symbol,)
+                else:
+                    # numbers and ()
+                    if symbol in '()':
+                        if last_element != '':
+                            parsed_list += (last_element,)
+                            last_element = ''
+                        parsed_list += (symbol,)
+                    else:
+                        # the symbol is NUMBER
+                        last_element += symbol
+            if last_element != '':
+                parsed_list += (last_element,)
+        return parsed_list
+
     def sort_values_stack(self, parsed_string):
         """Trace values in accordance to sign priority and brackets"""
 
@@ -122,8 +154,8 @@ class Calc(object):
             if element in OPERATORS:
                 while stack and stack[-1] != "(" \
                         and OPERATORS[element][0] <= OPERATORS[stack[-1]][0]:
-                    # yield stack.pop()
                     sorted_elements += (stack.pop(),)
+                    #yield stack.pop()
                 stack.append(element)
             # check case when we're in (..)
             # and the next element is ) to get all bracket's elements
@@ -132,17 +164,17 @@ class Calc(object):
                     bracket_item = stack.pop()
                     if bracket_item == '(':
                         break
-                    # yield bracket_item
                     sorted_elements += (bracket_item,)
+                    #yield bracket_item
             elif element == "(":
                 stack.append(element)
             else:
                 # number of function is parsed here
-                # yield element
                 sorted_elements += (element,)
+                #yield element
         while stack:
-            # yield stack.pop()
             sorted_elements += (stack.pop(),)
+            #yield stack.pop()
         return sorted_elements
 
     def calc(self, notation):
@@ -152,6 +184,22 @@ class Calc(object):
         for element in notation:
             if element in OPERATORS:
                 y, x = stack.pop(), stack.pop()
+
+                # calculate two values using lambda trick from OPERATORS
+                stack.append(OPERATORS[element][1](float(x), float(y)))
+            else:
+                stack.append(element)
+        return stack[0]
+
+    def calc_funcs(self, _tuple):
+        """find and calculate all functions using external module"""
+
+        # stupid solution to trace, find and calc all funcs
+        stack = []
+        for element in _tuple:
+            if element in OPERATORS:
+                y, x = stack.pop(), stack.pop()
+
                 # calculate two values using lambda trick from OPERATORS
                 stack.append(OPERATORS[element][1](float(x), float(y)))
             else:
@@ -163,43 +211,46 @@ def main():
     """Main script method"""
 
     try:
-        calc = Calc("calc")
-        testing_strings = {}
-        console_args = calc.console_parser()
+        pycalc = Calc("calc")
+        testing_strings = '2+2-4*log(10)'
+        console_args = pycalc.console_parser()
 
-        if not calc.console_args.string:
-            calc.log('error', 'No parsed input string')
+        #if not console_args.string:
+        #   pycalc.log('error', 'No parsed input string')
 
-        else:
-            testing_strings = {calc.console_args.string}
+        #else:
+        #    testing_strings = console_args.string
 
-            calc.log('info', 'Starting with {parse_str}'.format(parse_str=calc.console_args))
+        #    pycalc.log('info', 'Starting with {parse_str}'.format(parse_str=console_args))
 
         # check and dynamically import external module
-        if calc.console_args.module:
+        if console_args.module:
             try:
                 imported_module = importlib.import_module(console_args.module)
                 # is_imported = True
-                calc.log('info', 'Module {module} is imported successfully'.format(
-                        module=calc.console_args.module
+                pycalc.log('info', 'Module {module} is imported successfully'.format(
+                        module=console_args.module
                     )
                 )
-                calc.log('info', 'Func dir {module} is: {module_funcs}'.format(
-                    module=calc.console_args.module, module_funcs=dir(imported_module))
+                pycalc.log('info', 'Func dir {module} is: {module_funcs}'.format(
+                    module=console_args.module, module_funcs=dir(imported_module))
                 )
             except ImportError as err:
-                calc.log('error', 'Import {module} module {err}'.format(
-                        module=calc.console_args.module, err=err
+                pycalc.log('error', 'Import {module} module {err}'.format(
+                        module=console_args.module, err=err
                     )
                 )
 
         # run parser
-        list_values = calc.parse_string(testing_strings)
-        calc_values = calc.sort_values_stack(list_values)
-        print(calc.calc(calc_values))
+        list_values = pycalc.clean_up_str(testing_strings)
+        print(list_values)
+        print(pycalc.parse_string(list_values))
+        calc_values = pycalc.sort_values_stack(list_values)
+        print(calc_values)
+        print(pycalc.calc(calc_values))
 
     finally:
-        calc.log('info', 'close application')
+        pycalc.log('info', 'close application')
 
 
 if __name__ == '__main__':
