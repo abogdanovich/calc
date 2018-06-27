@@ -8,16 +8,19 @@
     def sort_values_stack(self, parsed_string):
     def calc(self, notation):
 
-
 """
 
-import pytest
+from pycalc import Calc
 
 
 def test_clean_up_str(calc_session):
     """checking clanup"""
 
-    pass
+    calculator = Calc('calc')
+    result = calculator.calc([2, 2, '+'])
+    expectation = 4
+    calculator.log('info', '---------------------------')
+    calculator.log('info', 'compare {expect} with {actual}'.format(expect=expectation, actual=result))
+    calculator.log('info', '---------------------------')
 
-
-
+    assert result == expectation

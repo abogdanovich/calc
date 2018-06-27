@@ -1,4 +1,4 @@
-"""calc.py script to parse and calculate values from input string.
+"""pycalc.py script to parse and calculate values from input string.
 
 Python Programming Language Foundation Hometask
 You are proposed to implement pure-python command-line calculator
@@ -42,37 +42,39 @@ BRACKETS = ('(', ')', )
 class Calc(object):
     """Main class with required funcs"""
 
+    loging_level = 'INFO'
+    time_format = '%Y-%m-%d_%H-%M-%S'
+
+    # Unique log file name
+    log_dir = './'
+
+    # Init logger for common messages
+    logger = logging.getLogger('Common')
+
     def __init__(self, log_name):
         """Init func with logging setup"""
 
-        loging_level = 'INFO'
-        time_format = '%Y-%m-%d_%H-%M-%S'
-
-        # Unique log file name
-        log_dir = './'
-        log_path = path.join(log_dir, '{name}_{time}.log'.format(
-            name=log_name, time=strftime(time_format)
-            )
+        log_path = path.join(self.log_dir, '{name}_{time}.log'.format(
+            name=log_name, time=strftime(self.time_format)
         )
-        # Init logger for common messages
-        logger = logging.getLogger('Common')
+                             )
 
-        if loging_level.upper() == 'DEBUG':
-            logger.setLevel(logging.DEBUG)
+        if self.loging_level.upper() == 'DEBUG':
+            self.logger.setLevel(logging.DEBUG)
         else:
-            logger.setLevel(logging.INFO)
+            self.logger.setLevel(logging.INFO)
 
         # Add console handler to logger
         stream_handler = logging.StreamHandler()
         stream_handler.setLevel(logging.DEBUG)
         stream_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
-        logger.addHandler(stream_handler)
+        self.logger.addHandler(stream_handler)
 
         # Add file handler to logger
         file_handler = logging.FileHandler(log_path)
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
-        logger.addHandler(file_handler)
+        self.logger.addHandler(file_handler)
 
         self.log('info', 'Logging is started {level}'.format(level=self.loging_level))
 
@@ -110,60 +112,38 @@ class Calc(object):
 
         return _str.replace('**', '^')
 
-    def parse_string(self, input_string):
-        """Parse string to find signs, funcs and numbers"""
-
-        for _str in input_string:
-            clean_str = self.clean_up_str(_str)
-            parsed_list = ()
-            last_element = ''
-            for symbol in clean_str:
-                # check each symbol
-                if symbol in OPERATORS:
-                    if last_element != '':
-                        parsed_list += (last_element, )
-                        last_element = ''
-                    parsed_list += (symbol, )
-                else:
-                    # numbers and ()
-                    if symbol in '()':
-                        if last_element != '':
-                            parsed_list += (last_element, )
-                            last_element = ''
-                        parsed_list += (symbol, )
-                    else:
-                        # the symbol is NUMBER
-                        last_element += symbol
-            if last_element != '':
-                parsed_list += (last_element, )
-        return parsed_list
-
     def sort_values_stack(self, parsed_string):
         """Trace values in accordance to sign priority and brackets"""
 
         stack = []
+        sorted_elements = ()
         for element in parsed_string:
             # grab each element and compare priority with other stack elements
             if element in OPERATORS:
                 while stack and stack[-1] != "(" \
                         and OPERATORS[element][0] <= OPERATORS[stack[-1]][0]:
-                    yield stack.pop()
+                    # yield stack.pop()
+                    sorted_elements += (stack.pop(),)
                 stack.append(element)
             # check case when we're in (..)
             # and the next element is ) to get all bracket's elements
             elif element == ')':
                 while stack:
-                    x = stack.pop()
-                    if x == '(':
+                    bracket_item = stack.pop()
+                    if bracket_item == '(':
                         break
-                    yield x
+                    # yield bracket_item
+                    sorted_elements += (bracket_item,)
             elif element == "(":
                 stack.append(element)
             else:
                 # number of function is parsed here
-                yield element
+                # yield element
+                sorted_elements += (element,)
         while stack:
-            yield stack.pop()
+            # yield stack.pop()
+            sorted_elements += (stack.pop(),)
+        return sorted_elements
 
     def calc(self, notation):
         """Main calculation using reverse polish notation"""

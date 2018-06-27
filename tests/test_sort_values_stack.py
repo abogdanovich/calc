@@ -8,16 +8,19 @@
     def sort_values_stack(self, parsed_string):
     def calc(self, notation):
 
-
 """
 
-import pytest
+from pycalc import Calc
 
 
-def test_sort_values_stack(calc_session):
-    """checking sort of values stack"""
+def test_parse_string():
+    """checking parse string"""
 
-    pass
+    calculator = Calc('calc')
+    result = calculator.sort_values_stack('2+2-4^(-5-4)')
+    expectation = ('2', '2', '+', '4', '5', '-', '4', '-', '^', '-')
+    calculator.log('info', '---------------------------')
+    calculator.log('info', 'compare {expect} with {actual}'.format(expect=expectation, actual=result))
+    calculator.log('info', '---------------------------')
 
-
-
+    assert result == expectation
